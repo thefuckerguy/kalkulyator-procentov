@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <meta name="description" content="Локальный калькулятор процентов и USDT: удержание, обратный процент, обменный курс с вашей наценкой.">
+  <title>Калькулятор процентов и USDT</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a1020;
+      --panel: #141e32;
+      --panel-2: #1a2840;
+      --border: #2c3a54;
+      --text: #f3f6ff;
+      --muted: #9caac2;
+      --accent: #78a5ff;
+      --accent-strong: #4284ff;
+      --positive: #71e5b0;
+      --danger: #ff9e9e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 48px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(ellipse at 10% 0%, #182c51 0, transparent 42%),
+                  radial-gradient(ellipse at 90% 90%, #14294a 0, transparent 42%), var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    [hidden] { display: none !important; }
+    .wrap { width: min(100%, 940px); margin: 0 auto; }
+    .eyebrow { color: var(--accent); font-size: 13px; font-weight: 800; letter-spacing: 0.13em; text-transform: uppercase; }
+    h1 { margin: 11px 0 12px; font-size: clamp(30px, 5vw, 45px); line-height: 1.13; letter-spacing: -0.035em; }
+    .lead { color: var(--muted); max-width: 660px; margin: 0 0 30px; font-size: 16px; }
+    .layout { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 20px; align-items: stretch; }
+    .card { border: 1px solid var(--border); background: var(--panel); border-radius: 22px; padding: 27px; box-shadow: 0 18px 55px #00000020; }
+    .card-title { margin: 0 0 25px; font-size: 19px; font-weight: 750; }
+    .field { display: block; margin-bottom: 22px; }
+    .field > span:first-child { display: block; margin-bottom: 9px; font-weight: 650; font-size: 14px; }
+    .input-wrap { position: relative; }
+    input {
+      display: block; width: 100%; height: 60px;
+      border: 1px solid #3a4b68; border-radius: 13px;
+      outline: none; background: #0c1628;
+      color: white; padding: 0 55px 0 16px;
+      font: 700 22px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-variant-numeric: tabular-nums; transition: border-color 150ms, box-shadow 150ms;
+    }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px #78a5ff23; }
+    input.invalid { border-color: var(--danger); }
+    .unit { position: absolute; right: 17px; top: 50%; transform: translateY(-50%); font-size: 20px; font-weight: 700; color: var(--muted); pointer-events: none; }
+    .field small { display: block; margin-top: 7px; color: var(--muted); font-size: 12px; }
+    .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .chip { cursor: pointer; color: #cdd8ef; background: #202d45; border: 1px solid #364861; padding: 7px 14px; border-radius: 999px; font-family: inherit; font-size: 13px; font-weight: 650; transition: background 150ms, border-color 150ms; }
+    .chip:hover { background: #2c3e5d; }
+    .chip.active { color: #d9e7ff; border-color: var(--accent-strong); background: #244577; }
+    .section-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 6px; margin: 0 0 22px; border: 1px solid #354a65; background: #0b1729; border-radius: 16px; max-width: 510px; }
+    .section-button { appearance: none; cursor: pointer; padding: 13px; min-height: 50px; border: 1px solid transparent; border-radius: 11px; color: #aabbd5; font: 800 15px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: transparent; }
+    .section-button:hover { color: white; background: #1b304e; }
+    .section-button[aria-pressed="true"] { color: white; background: #244879; border-color: #477ee2; }
+    .section-button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    .rate-field input { padding-right: 110px; }
+    .unit.small { font-size: 13px; right: 13px; }
+    .line.featured { padding: 14px; background: #102e41; border: 1px solid #32617b; border-radius: 12px; }
+    .line.featured strong { color: var(--positive); }
+    .mode-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 5px; margin-bottom: 24px; border: 1px solid #354a65; background: #0b1729; border-radius: 14px; }
+    .mode-button { appearance: none; cursor: pointer; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #aabbd5; font: 700 13px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; min-height: 53px; padding: 9px 10px; text-align: center; }
+    .mode-button:hover { color: #f3f6ff; background: #1b304e; }
+    .mode-button[aria-pressed="true"] { color: white; border-color: #477ee2; background: #244879; box-shadow: 0 2px 12px #00000024; }
+    .mode-button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    .hint { margin: 23px 0 0; border-top: 1px solid var(--border); padding-top: 19px; color: var(--muted); font-size: 13px; }
+    .result { background: linear-gradient(160deg, #1e365b, #16253c 64%, #131e31); }
+    .result .topline { color: #bbcee9; font-weight: 650; font-size: 14px; }
+    .total { margin: 7px 0 9px; font-size: clamp(27px, 3.9vw, 39px); font-weight: 850; letter-spacing: -0.035em; line-height: 1.18; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .sub { color: var(--muted); font-size: 13px; margin-bottom: 25px; }
+    .divider { height: 1px; background: #ffffff19; margin: 19px 0; }
+    .line { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 18px 0; font-size: 15px; }
+    .line span:first-child { color: #c0cde3; }
+    .line strong { text-align: right; font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .green { color: var(--positive); }
+    .red { color: var(--danger); }
+    .formula { margin-top: 25px; color: #a8bddb; background: #0d1c31b8; border: 1px solid #304564; padding: 13px 15px; border-radius: 12px; font-size: 13px; overflow-wrap: anywhere; }
+    .actions { margin-top: 20px; display: flex; gap: 9px; flex-wrap: wrap; }
+    .btn { border: 0; cursor: pointer; min-height: 43px; padding: 11px 17px; border-radius: 11px; font-family: inherit; font-size: 14px; font-weight: 750; transition: filter 150ms, background 150ms; }
+    .btn:hover { filter: brightness(1.12); }
+    .btn.primary { background: var(--accent-strong); color: white; }
+    .btn.secondary { background: #263752; color: #dae6ff; border: 1px solid #415471; }
+    .explanation { margin-top: 20px; background: #111b2c; border: 1px solid #2a3a53; padding: 21px 23px; border-radius: 17px; }
+    .explanation h2 { font-size: 16px; margin: 0 0 7px; }
+    .explanation p { color: var(--muted); margin: 0; font-size: 14px; }
+    .error { color: var(--danger); margin: -7px 0 15px; font-size: 13px; min-height: 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .toast { margin-top: 13px; color: var(--positive); min-height: 18px; font-size: 13px; }
+    .toast.is-error { color: var(--danger); }
+    .btn:disabled { cursor: not-allowed; opacity: .5; filter: none; }
+    .history { margin-top: 20px; }
+    .history-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 19px; }
+    .history-header .card-title { margin-bottom: 6px; }
+    .history-description { font-size: 13px; color: var(--muted); margin: 0; max-width: 600px; }
+    .history-count { display: inline-grid; place-items: center; min-width: 26px; height: 26px; margin-left: 6px; padding: 0 7px; vertical-align: middle; border-radius: 8px; font-size: 13px; font-weight: 800; color: #cbdfff; background: #2c4261; }
+    .history-list { display: flex; flex-direction: column; gap: 11px; }
+    .history-empty { padding: 28px 18px; text-align: center; border: 1px dashed #3c516e; border-radius: 14px; color: var(--muted); font-size: 14px; }
+    .history-item { border: 1px solid #334661; border-radius: 14px; background: #0f1b2d; padding: 16px 17px; display: flex; align-items: center; justify-content: space-between; gap: 17px; }
+    .history-details { min-width: 0; flex: 1; }
+    .history-meta { color: var(--muted); font-size: 12px; margin-bottom: 3px; }
+    .history-total { color: var(--positive); font-size: 21px; line-height: 1.25; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    .history-extras { font-size: 13px; color: #c1cfe5; margin-top: 5px; }
+    .history-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .history-actions .btn { font-size: 12px; padding: 9px 12px; min-height: 36px; }
+    .history-status { display: block; color: var(--muted); font-size: 12px; margin-top: 14px; }
+    .copy-note { margin-top: 8px; margin-bottom: 0; color: #b4c5e0; font-size: 12px; }
+    .btn:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    footer { padding-top: 24px; text-align: center; color: #798ca9; font-size: 12px; }
+    @media (max-width: 720px) {
+      body { padding: 30px 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .card { padding: 22px; }
+      .lead { margin-bottom: 23px; }
+      .line strong { white-space: normal; }
+      .history-header { flex-wrap: wrap; }
+      .history-item { align-items: flex-start; flex-direction: column; }
+      .history-actions { justify-content: flex-start; }
+      .mode-button { font-size: 12px; padding: 7px 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="eyebrow">Финансовый инструмент</div>
+    <h1>Калькулятор процентов и USDT</h1>
+    <p class="lead">Рассчитайте удержание процентов или обмен USDT по заданному курсу с вашей наценкой. Все расчёты выполняются локально в браузере.</p>
+
+    <nav class="section-switch" aria-label="Раздел калькулятора">
+      <button class="section-button" data-section="percent" type="button" aria-pressed="true">Проценты</button>
+      <button class="section-button" data-section="usdt" type="button" aria-pressed="false">USDT / RUB</button>
+    </nav>
+
+    <div class="layout" id="percentLayout">
+      <section class="card" aria-labelledby="inputs-title">
+        <h2 class="card-title" id="inputs-title">Исходные данные</h2>
+        <div class="mode-switch" role="group" aria-label="Режим расчёта">
+          <button class="mode-button" data-mode="reverse" type="button" aria-pressed="true">Чтобы осталось на руках</button>
+          <button class="mode-button" data-mode="deduct" type="button" aria-pressed="false">Вычесть процент из суммы</button>
+        </div>
+        <label class="field" for="netInput">
+          <span id="amountLabel">Нужно получить на руки</span>
+          <span class="input-wrap"><input id="netInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="netHint"><span class="unit" aria-hidden="true">₽</span></span>
+          <small id="netHint">Например: 634 000 или 634 тыс</small>
+        </label>
+        <label class="field" for="percentInput">
+          <span>Процент удержания</span>
+          <span class="input-wrap"><input id="percentInput" type="text" inputmode="decimal" value="8" autocomplete="off"><span class="unit" aria-hidden="true">%</span></span>
+        </label>
+        <div class="presets" aria-label="Быстрый выбор процента">
+          <button type="button" class="chip" data-percent="3">3%</button>
+          <button type="button" class="chip" data-percent="5">5%</button>
+          <button type="button" class="chip" data-percent="6">6%</button>
+          <button type="button" class="chip" data-percent="8">8%</button>
+          <button type="button" class="chip" data-percent="10">10%</button>
+          <button type="button" class="chip" data-percent="13">13%</button>
+        </div>
+        <p class="hint" id="modeHint">Процент считается <strong style="color:#d7e3f9">от итоговой суммы до удержания</strong>, а не от суммы, которую вы хотите получить. Расчёт обновляется автоматически.</p>
+      </section>
+
+      <section class="card result" aria-labelledby="result-title">
+        <div class="topline" id="result-title">Нужно выставить / запросить</div>
+        <div class="total" id="resultAmount" aria-live="polite">0,00 ₽</div>
+        <div class="sub" id="resultSub">Сумма до вычета комиссии или процента</div>
+        <div class="divider"></div>
+        <div class="line"><span id="desiredLabel">Изначально хотите получить</span><strong id="desiredAmount">0,00 ₽</strong></div>
+        <div class="line"><span>Удержат (<span id="rateLabel">8%</span>)</span><strong class="red" id="feeAmount">−0,00 ₽</strong></div>
+        <div class="divider"></div>
+        <div class="line"><span>Останется на руках</span><strong class="green" id="actualNet">0,00 ₽</strong></div>
+        <div class="formula" id="formula">0 ÷ (1 − 8 ÷ 100) = 0,00 ₽</div>
+        <div class="actions">
+          <button class="btn primary" id="copyResultButton" type="button">Скопировать только сумму</button>
+          <button class="btn secondary" id="copyButton" type="button">Скопировать расчёт</button>
+          <button class="btn secondary" id="resetButton" type="button">Сбросить</button>
+        </div>
+        <p class="copy-note">Кнопка «Скопировать только сумму» копирует число без знака ₽ и пояснений.</p>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <div class="layout" id="usdtLayout" hidden>
+      <section class="card" aria-labelledby="usdt-inputs-title">
+        <h2 class="card-title" id="usdt-inputs-title">Расчёт обмена USDT</h2>
+        <div class="mode-switch" role="group" aria-label="Направление расчёта USDT">
+          <button class="mode-button" data-usdt-direction="rub-to-usdt" type="button" aria-pressed="true">Отдают ₽ → получают USDT</button>
+          <button class="mode-button" data-usdt-direction="usdt-to-rub" type="button" aria-pressed="false">Нужно USDT → сколько ₽</button>
+        </div>
+        <label class="field rate-field" for="usdtRateInput">
+          <span>Базовый курс за 1 USDT</span>
+          <span class="input-wrap"><input id="usdtRateInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="usdtRateHint"><span class="unit small" aria-hidden="true">₽ / USDT</span></span>
+          <small id="usdtRateHint">Введите курс вручную. Например: 92,50. Автоматической загрузки котировок нет.</small>
+        </label>
+        <label class="field" for="usdtAmountInput">
+          <span id="usdtAmountLabel">Сколько рублей отдаёт клиент</span>
+          <span class="input-wrap"><input id="usdtAmountInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="usdtAmountHint"><span class="unit" id="usdtAmountUnit" aria-hidden="true">₽</span></span>
+          <small id="usdtAmountHint">Например: 100 000 или 100 тыс</small>
+        </label>
+        <label class="field" for="usdtMarkupInput">
+          <span>Моя наценка к курсу</span>
+          <span class="input-wrap"><input id="usdtMarkupInput" type="text" inputmode="decimal" value="0" autocomplete="off"><span class="unit" aria-hidden="true">%</span></span>
+        </label>
+        <div class="presets" aria-label="Быстрый выбор наценки">
+          <button type="button" class="chip" data-usdt-markup="0">0%</button>
+          <button type="button" class="chip" data-usdt-markup="1">1%</button>
+          <button type="button" class="chip" data-usdt-markup="2">2%</button>
+          <button type="button" class="chip" data-usdt-markup="3">3%</button>
+          <button type="button" class="chip" data-usdt-markup="5">5%</button>
+          <button type="button" class="chip" data-usdt-markup="8">8%</button>
+        </div>
+        <p class="hint">Наценка <strong style="color:#d7e3f9">прибавляется именно к курсу</strong>. Например, курс 100 ₽ + 5% = 105 ₽ за 1 USDT. Сетевые комиссии в расчёт не включены.</p>
+      </section>
+
+      <section class="card result" aria-labelledby="usdt-result-title">
+        <div class="topline" id="usdt-result-title">Клиент получит</div>
+        <div class="total" id="usdtResultAmount" aria-live="polite">—</div>
+        <div class="sub" id="usdtResultSub">USDT после применения вашей наценки к курсу</div>
+        <div class="divider"></div>
+        <div class="line"><span>Базовый курс</span><strong id="usdtBaseRate">—</strong></div>
+        <div class="line"><span>Наценка к курсу</span><strong id="usdtMarkupRate">—</strong></div>
+        <div class="line featured"><span>Курс для клиента</span><strong id="usdtFinalRate">—</strong></div>
+        <div class="divider"></div>
+        <div class="line"><span>Клиент отдаёт</span><strong id="usdtRubAmount">—</strong></div>
+        <div class="line"><span>Клиент получает</span><strong class="green" id="usdtUsdtAmount">—</strong></div>
+        <div class="line"><span>Разница относительно базового курса</span><strong id="usdtMarkupRub">—</strong></div>
+        <div class="formula" id="usdtFormula">Укажите базовый курс больше нуля, чтобы рассчитать обмен.</div>
+        <div class="actions">
+          <button class="btn primary" id="usdtCopyResultButton" type="button" disabled>Скопировать только сумму</button>
+          <button class="btn secondary" id="usdtCopyButton" type="button" disabled>Скопировать расчёт</button>
+          <button class="btn secondary" id="usdtResetButton" type="button">Сбросить</button>
+        </div>
+        <p class="copy-note" id="usdtCopyNote">Скопирует только число USDT без обозначения валюты.</p>
+        <div class="toast" id="usdtToast" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <section class="card history" aria-labelledby="history-title">
+      <div class="history-header">
+        <div>
+          <h2 class="card-title" id="history-title">История расчётов <span class="history-count" id="historyCount">0</span></h2>
+          <p class="history-description">Расчёты процентов и USDT сохраняются автоматически. Для каждой записи можно повторить расчёт или скопировать результат. Хранятся последние 50 записей.</p>
+        </div>
+        <button class="btn secondary" id="clearHistoryButton" type="button" disabled>Очистить историю</button>
+      </div>
+      <div class="history-list" id="historyList" aria-live="polite">
+        <div class="history-empty">История пока пуста. Введите сумму больше нуля, чтобы сохранить первый расчёт.</div>
+      </div>
+      <small class="history-status" id="historyStorageInfo">История сохраняется только в этом браузере, без отправки данных в интернет.</small>
+    </section>
+
+    <section class="explanation" aria-labelledby="explain-title">
+      <h2 id="explain-title">Почему нельзя просто прибавить процент?</h2>
+      <p id="comparison">При нулевой сумме итог также равен нулю. Введите сумму, чтобы увидеть сравнение.</p>
+    </section>
+    <footer>Работает локально и без интернета. Суммы в рублях округляются до копеек, USDT — до 6 знаков после запятой. Реальные котировки и комиссии сети не загружаются.</footer>
+  </main>
+
+  <script>
+    'use strict';
+    const netInput = document.getElementById('netInput');
+    const percentInput = document.getElementById('percentInput');
+    const resultAmount = document.getElementById('resultAmount');
+    const desiredAmount = document.getElementById('desiredAmount');
+    const feeAmount = document.getElementById('feeAmount');
+    const actualNet = document.getElementById('actualNet');
+    const rateLabel = document.getElementById('rateLabel');
+    const formula = document.getElementById('formula');
+    const comparison = document.getElementById('comparison');
+    const toast = document.getElementById('toast');
+    const copyButton = document.getElementById('copyButton');
+    const copyResultButton = document.getElementById('copyResultButton');
+    const chips = [...document.querySelectorAll('[data-percent]')];
+    const modeButtons = [...document.querySelectorAll('[data-mode]')];
+    const historyList = document.getElementById('historyList');
+    const historyCount = document.getElementById('historyCount');
+    const historyStorageInfo = document.getElementById('historyStorageInfo');
+    const clearHistoryButton = document.getElementById('clearHistoryButton');
+    const sectionButtons = [...document.querySelectorAll('[data-section]')];
+    const percentLayout = document.getElementById('percentLayout');
+    const usdtLayout = document.getElementById('usdtLayout');
+    const usdtDirections = [...document.querySelectorAll('[data-usdt-direction]')];
+    const usdtChips = [...document.querySelectorAll('[data-usdt-markup]')];
+    const usdtRateInput = document.getElementById('usdtRateInput');
+    const usdtAmountInput = document.getElementById('usdtAmountInput');
+    const usdtMarkupInput = document.getElementById('usdtMarkupInput');
+    const usdtResultAmount = document.getElementById('usdtResultAmount');
+    const usdtCopyResultButton = document.getElementById('usdtCopyResultButton');
+    const usdtCopyButton = document.getElementById('usdtCopyButton');
+    const usdtToast = document.getElementById('usdtToast');
+
+    const rub = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const number = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
+    const plainAmount = new Intl.NumberFormat('ru-RU', { useGrouping: false, minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    const usdtFormatter = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    const usdtPlainFormatter = new Intl.NumberFormat('ru-RU', { useGrouping: false, minimumFractionDigits: 6, maximumFractionDigits: 6 });
+    const rateFormatter = new Intl.NumberFormat('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 8 });
+    const usdtText = micro => usdtFormatter.format(micro / 1e6) + ' USDT';
+    const onlyUsdtNumber = micro => usdtPlainFormatter.format(micro / 1e6);
+    const formatRate = value => rateFormatter.format(value);
+    const money = cents => rub.format(cents / 100);
+    const onlyNumber = cents => plainAmount.format(cents / 100);
+    // Используем прежний ключ, чтобы не потерять историю из предыдущей версии.
+    const STORAGE_KEY = 'reverse_percentage_calculator_history_v1';
+    const MAX_HISTORY = 50;
+    let section = 'percent';
+    let mode = 'reverse';
+    let usdtDirection = 'rub-to-usdt';
+    let currentUsdt = null;
+    let current = null;
+    let historyEntries = [];
+    let historyTimer = null;
+    let storageAvailable = true;
+
+    function readNumber(input, allowUnits) {
+      let s = input.trim().toLowerCase().replace(/[\u00a0\u202f]/g, '');
+      let factor = 1;
+      if (allowUnits) {
+        s = s.replace(/₽|руб(?:лей|ля|ль|\.)?/g, '').trim();
+        if (/\s*тыс(?:яч(?:а|и)?)?\.?$/.test(s)) {
+          factor = 1000;
+          s = s.replace(/\s*тыс(?:яч(?:а|и)?)?\.?$/, '');
+        } else if (/\s*млн\.?$/.test(s)) {
+          factor = 1000000;
+          s = s.replace(/\s*млн\.?$/, '');
+        }
+      } else {
+        s = s.replace(/%/g, '').trim();
+      }
+      s = s.replace(/\s/g, '').replace(',', '.');
+      if (!/^\d+(?:\.\d+)?$/.test(s)) return NaN;
+      return Number(s) * factor;
+    }
+
+    function showToast(message, error = false) {
+      toast.textContent = message;
+      toast.classList.toggle('is-error', error);
+    }
+
+    function updateModeUI() {
+      const deduct = mode === 'deduct';
+      modeButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+      document.getElementById('amountLabel').textContent = deduct ? 'Сумма, из которой нужно вычесть процент' : 'Нужно получить на руки';
+      document.getElementById('netHint').textContent = deduct ? 'Укажите сумму до удержания, например: 634 000 или 634 тыс' : 'Например: 634 000 или 634 тыс';
+      document.getElementById('modeHint').innerHTML = deduct
+        ? 'Из указанной суммы вычитается выбранный процент. <strong style="color:#d7e3f9">Результат — сумма после удержания</strong>. Расчёт обновляется автоматически.'
+        : 'Процент считается <strong style="color:#d7e3f9">от итоговой суммы до удержания</strong>, а не от суммы, которую вы хотите получить. Расчёт обновляется автоматически.';
+      document.getElementById('result-title').textContent = deduct ? 'Останется после вычета процента' : 'Нужно выставить / запросить';
+      document.getElementById('resultSub').textContent = deduct ? 'Итоговая сумма на руках после удержания' : 'Сумма до вычета комиссии или процента';
+      document.getElementById('desiredLabel').textContent = deduct ? 'Исходная сумма до удержания' : 'Изначально хотите получить';
+      document.getElementById('explain-title').textContent = deduct ? 'Как считается вычет процента?' : 'Почему нельзя просто прибавить процент?';
+    }
+
+    function setEmpty(message = 'Укажите корректные значения для расчёта.') {
+      current = null;
+      resultAmount.textContent = '—';
+      desiredAmount.textContent = '—';
+      feeAmount.textContent = '—';
+      actualNet.textContent = '—';
+      rateLabel.textContent = '—';
+      formula.textContent = message;
+      comparison.textContent = 'Введите сумму и процент, чтобы увидеть подробности расчёта.';
+      copyButton.disabled = true;
+      copyResultButton.disabled = true;
+    }
+
+    function calculate() {
+      showToast('');
+      const amount = readNumber(netInput.value, true);
+      const percent = readNumber(percentInput.value, false);
+      const amountValid = Number.isFinite(amount) && amount >= 0 && amount <= 100000000000;
+      const percentValid = Number.isFinite(percent) && percent >= 0 && (mode === 'deduct' ? percent <= 100 : percent < 100);
+      netInput.classList.toggle('invalid', !amountValid);
+      percentInput.classList.toggle('invalid', !percentValid);
+      netInput.setAttribute('aria-invalid', String(!amountValid));
+      percentInput.setAttribute('aria-invalid', String(!percentValid));
+      chips.forEach(chip => chip.classList.toggle('active', percentValid && Number(chip.dataset.percent) === percent));
+      if (!amountValid || !percentValid) {
+        setEmpty(mode === 'reverse' && Number.isFinite(percent) && percent >= 100
+          ? 'Для обратного расчёта процент должен быть меньше 100%.'
+          : 'Укажите корректную сумму и процент: ' + (mode === 'deduct' ? 'от 0% до 100%.' : 'от 0% до менее 100%.'));
+        return;
+      }
+
+      const inputCents = Math.round(amount * 100);
+      const rate = percent / 100;
+      const withheld = grossCents => Math.round(grossCents * rate);
+      const remaining = grossCents => grossCents - withheld(grossCents);
+      let grossCents, feeCents, netCents;
+
+      if (mode === 'reverse') {
+        if (inputCents === 0) {
+          grossCents = 0;
+        } else {
+          // Ищем минимальную сумму, с которой после округления удержания
+          // до копеек получится ровно необходимая сумма на руки.
+          let lo = 0;
+          let hi = Math.ceil((inputCents + 1) / (1 - rate));
+          if (!Number.isSafeInteger(hi)) {
+            setEmpty('Сумма слишком велика для точного расчёта до копеек. Уменьшите сумму или процент.');
+            return;
+          }
+          while (lo < hi) {
+            const mid = lo + Math.floor((hi - lo) / 2);
+            if (remaining(mid) >= inputCents) hi = mid;
+            else lo = mid + 1;
+          }
+          grossCents = lo;
+        }
+        feeCents = withheld(grossCents);
+        netCents = remaining(grossCents);
+      } else {
+        grossCents = inputCents;
+        feeCents = withheld(grossCents);
+        netCents = remaining(grossCents);
+      }
+
+      const resultCents = mode === 'reverse' ? grossCents : netCents;
+      resultAmount.textContent = money(resultCents);
+      desiredAmount.textContent = money(inputCents);
+      feeAmount.textContent = '−' + money(feeCents);
+      actualNet.textContent = money(netCents);
+      rateLabel.textContent = number.format(percent) + '%';
+      formula.textContent = mode === 'reverse'
+        ? number.format(inputCents / 100) + ' ÷ (1 − ' + number.format(percent) + ' ÷ 100) ≈ ' + money(grossCents)
+        : number.format(inputCents / 100) + ' × (1 − ' + number.format(percent) + ' ÷ 100) = ' + money(netCents);
+
+      if (mode === 'reverse') {
+        const ordinaryGrossCents = Math.round(inputCents * (1 + rate));
+        const ordinaryNetCents = remaining(ordinaryGrossCents);
+        const difference = inputCents - ordinaryNetCents;
+        comparison.textContent = inputCents === 0
+          ? 'При нулевой сумме итог также равен нулю. Введите сумму, чтобы увидеть сравнение.'
+          : percent === 0
+          ? 'При удержании 0% итоговая сумма равна сумме, которую вы хотите получить.'
+          : 'Если к ' + money(inputCents) + ' просто прибавить ' + number.format(percent) + '%, получится ' + money(ordinaryGrossCents) + '. После вычета ' + number.format(percent) + '% останется ' + money(ordinaryNetCents) + ' — не хватит ' + money(difference) + '.';
+      } else {
+        comparison.textContent = inputCents === 0
+          ? 'При нулевой исходной сумме итог также равен нулю.'
+          : 'Из ' + money(grossCents) + ' удерживается ' + number.format(percent) + '% (' + money(feeCents) + '). После удержания на руках останется ' + money(netCents) + '.';
+      }
+
+      current = { mode, inputCents, grossCents, feeCents, netCents, percent };
+      copyButton.disabled = false;
+      copyResultButton.disabled = false;
+    }
+
+    function readUsdt(value) {
+      const text = value.trim().toLowerCase().replace(/[\u00a0\u202f\s]/g, '').replace(/usdt/g, '').replace(',', '.');
+      if (!/^\d+(?:\.\d{1,6})?$/.test(text)) return NaN;
+      return Number(text);
+    }
+
+    function updateUsdtUI() {
+      const buy = usdtDirection === 'rub-to-usdt';
+      usdtDirections.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.usdtDirection === usdtDirection)));
+      document.getElementById('usdtAmountLabel').textContent = buy ? 'Сколько рублей отдаёт клиент' : 'Сколько USDT должен получить клиент';
+      document.getElementById('usdtAmountUnit').textContent = buy ? '₽' : 'USDT';
+      document.getElementById('usdtAmountUnit').classList.toggle('small', !buy);
+      document.getElementById('usdtAmountHint').textContent = buy
+        ? 'Например: 100 000 или 100 тыс'
+        : 'Например: 100,5 USDT. Точность — до 6 знаков после запятой.';
+      document.getElementById('usdt-result-title').textContent = buy ? 'Клиент получит' : 'Клиент должен отдать';
+      document.getElementById('usdtResultSub').textContent = buy
+        ? 'USDT после применения вашей наценки к курсу'
+        : 'Рубли по курсу с вашей наценкой';
+      document.getElementById('usdtCopyNote').textContent = buy
+        ? 'Скопирует только число USDT без обозначения валюты.'
+        : 'Скопирует только число рублей без обозначения валюты.';
+    }
+
+    function setUsdtEmpty(message = 'Введите корректные данные для расчёта USDT.') {
+      currentUsdt = null;
+      for (const id of ['usdtResultAmount', 'usdtBaseRate', 'usdtMarkupRate', 'usdtFinalRate',
+        'usdtRubAmount', 'usdtUsdtAmount', 'usdtMarkupRub']) {
+        document.getElementById(id).textContent = '—';
+      }
+      document.getElementById('usdtFormula').textContent = message;
+      usdtCopyButton.disabled = true;
+      usdtCopyResultButton.disabled = true;
+      if (section === 'usdt') {
+        document.getElementById('explain-title').textContent = 'Как рассчитывается обмен USDT?';
+        comparison.textContent = 'Введите базовый курс выше нуля и сумму обмена. Прибавка в процентах увеличивает курс для клиента.';
+      }
+    }
+
+    function calculateUsdt() {
+      usdtToast.textContent = '';
+      const baseRate = readNumber(usdtRateInput.value, false);
+      const markupPercent = readNumber(usdtMarkupInput.value, false);
+      const buy = usdtDirection === 'rub-to-usdt';
+      const inputAmount = buy ? readNumber(usdtAmountInput.value, true) : readUsdt(usdtAmountInput.value);
+      const rateValid = Number.isFinite(baseRate) && baseRate >= 0.000001 && baseRate <= 1000000;
+      const markupValid = Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000;
+      const amountValid = Number.isFinite(inputAmount) && inputAmount >= 0 &&
+        inputAmount <= (buy ? 1e12 : 1e8);
+      for (const [element, valid] of [[usdtRateInput, rateValid], [usdtMarkupInput, markupValid], [usdtAmountInput, amountValid]]) {
+        element.classList.toggle('invalid', !valid && (element !== usdtRateInput || element.value.trim() !== '0'));
+        element.setAttribute('aria-invalid', String(!valid && (element !== usdtRateInput || element.value.trim() !== '0')));
+      }
+      usdtChips.forEach(chip => chip.classList.toggle('active', markupValid && Number(chip.dataset.usdtMarkup) === markupPercent));
+      if (!rateValid || !markupValid || !amountValid) {
+        setUsdtEmpty(!rateValid ? 'Введите базовый курс больше нуля (₽ за 1 USDT).'
+          : !markupValid ? 'Наценка должна быть от 0% до 1000%.'
+          : buy ? 'Укажите корректную сумму в рублях от 0 до 1 трлн ₽.'
+          : 'Укажите корректное количество USDT (до 6 знаков после запятой).');
+        return;
+      }
+
+      const effectiveRate = baseRate * (1 + markupPercent / 100);
+      let rubCents, usdtMicros;
+      if (buy) {
+        rubCents = Math.round(inputAmount * 100);
+        // Для обмена за фиксированное количество рублей округляем USDT вниз:
+        // клиент не должен получить больше, чем оплачено по итоговому курсу.
+        usdtMicros = Math.floor((rubCents / 100 / effectiveRate) * 1e6 + 1e-7);
+      } else {
+        usdtMicros = Math.round(inputAmount * 1e6);
+        // Для фиксированного количества USDT округляем рублёвую оплату вверх.
+        rubCents = Math.ceil((usdtMicros / 1e6 * effectiveRate) * 100 - 1e-9);
+      }
+      if (!Number.isSafeInteger(rubCents) || !Number.isSafeInteger(usdtMicros) ||
+          rubCents < 0 || rubCents > 1e14 || usdtMicros < 0 || usdtMicros > 1e14) {
+        setUsdtEmpty('Слишком большая сумма при таком курсе. Уменьшите сумму или измените курс.');
+        return;
+      }
+      const baseCostCents = Math.round(usdtMicros / 1e6 * baseRate * 100);
+      const markupRubCents = Math.max(0, rubCents - baseCostCents);
+      const inputRubCents = buy ? rubCents : 0;
+      const inputUsdtMicros = buy ? 0 : usdtMicros;
+
+      usdtResultAmount.textContent = buy ? usdtText(usdtMicros) : money(rubCents);
+      document.getElementById('usdtBaseRate').textContent = formatRate(baseRate) + ' ₽/USDT';
+      document.getElementById('usdtMarkupRate').textContent = '+' + formatRate(effectiveRate - baseRate) + ' ₽ (' + number.format(markupPercent) + '%)';
+      document.getElementById('usdtFinalRate').textContent = formatRate(effectiveRate) + ' ₽/USDT';
+      document.getElementById('usdtRubAmount').textContent = money(rubCents);
+      document.getElementById('usdtUsdtAmount').textContent = usdtText(usdtMicros);
+      document.getElementById('usdtMarkupRub').textContent = money(markupRubCents);
+      document.getElementById('usdtFormula').textContent = buy
+        ? money(rubCents) + ' ÷ ' + formatRate(effectiveRate) + ' ₽/USDT ≈ ' + usdtText(usdtMicros) + ' (округление USDT вниз до 6 знаков)'
+        : usdtText(usdtMicros) + ' × ' + formatRate(effectiveRate) + ' ₽/USDT ≈ ' + money(rubCents) + ' (округление рублей вверх до копейки)';
+      if (section === 'usdt') {
+        document.getElementById('explain-title').textContent = 'Как рассчитывается обмен USDT?';
+        comparison.textContent = 'К базовому курсу ' + formatRate(baseRate) + ' ₽ добавлена наценка ' +
+          number.format(markupPercent) + '%. Курс для клиента: ' + formatRate(effectiveRate) +
+          ' ₽/USDT. Клиент отдаёт ' + money(rubCents) + ' и получает ' + usdtText(usdtMicros) +
+          '. Разница относительно базового курса: ' + money(markupRubCents) +
+          ' (это не чистая прибыль; другие комиссии и расходы не учтены).';
+      }
+      currentUsdt = { mode: 'usdt', direction: usdtDirection, baseRate, markupPercent,
+        effectiveRate, inputRubCents, inputUsdtMicros, rubCents, usdtMicros, markupRubCents };
+      usdtCopyButton.disabled = false;
+      usdtCopyResultButton.disabled = false;
+    }
+
+    function updateSectionUI() {
+      const onUsdt = section === 'usdt';
+      sectionButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.section === section)));
+      percentLayout.hidden = onUsdt;
+      usdtLayout.hidden = !onUsdt;
+      if (onUsdt) {
+        updateUsdtUI();
+        calculateUsdt();
+      } else {
+        updateModeUI();
+        calculate();
+      }
+    }
+
+    function normalizeHistoryEntry(entry) {
+      if (!entry || typeof entry !== 'object') return null;
+      if (entry.mode === 'usdt') {
+        if (entry.direction !== 'rub-to-usdt' && entry.direction !== 'usdt-to-rub') return null;
+        for (const value of [entry.inputRubCents, entry.inputUsdtMicros, entry.rubCents, entry.usdtMicros]) {
+          if (!Number.isSafeInteger(value) || value < 0) return null;
+        }
+        if (!Number.isFinite(entry.baseRate) || entry.baseRate <= 0 || entry.baseRate > 1000000 ||
+            !Number.isFinite(entry.markupPercent) || entry.markupPercent < 0 || entry.markupPercent > 1000 ||
+            !Number.isFinite(entry.createdAt) || entry.createdAt <= 0) return null;
+        if (entry.direction === 'rub-to-usdt' && entry.rubCents !== entry.inputRubCents) return null;
+        if (entry.direction === 'usdt-to-rub' && entry.usdtMicros !== entry.inputUsdtMicros) return null;
+        const effectiveRate = entry.baseRate * (1 + entry.markupPercent / 100);
+        const baseCostCents = Math.round(entry.usdtMicros / 1e6 * entry.baseRate * 100);
+        return { mode: 'usdt', direction: entry.direction, baseRate: entry.baseRate,
+          markupPercent: entry.markupPercent, effectiveRate,
+          inputRubCents: entry.inputRubCents, inputUsdtMicros: entry.inputUsdtMicros,
+          rubCents: entry.rubCents, usdtMicros: entry.usdtMicros,
+          markupRubCents: Math.max(0, entry.rubCents - baseCostCents), createdAt: entry.createdAt };
+      }
+      const entryMode = entry.mode === 'deduct' ? 'deduct' : 'reverse';
+      // Предыдущая версия хранила ввод пользователя в поле targetCents.
+      const inputCents = entry.inputCents === undefined ? entry.targetCents : entry.inputCents;
+      if (![inputCents, entry.grossCents, entry.feeCents, entry.netCents]
+        .every(value => Number.isSafeInteger(value) && value >= 0)) return null;
+      if (typeof entry.percent !== 'number' || !Number.isFinite(entry.percent) || entry.percent < 0 ||
+          (entryMode === 'deduct' ? entry.percent > 100 : entry.percent >= 100)) return null;
+      if (typeof entry.createdAt !== 'number' || !Number.isFinite(entry.createdAt) || entry.createdAt <= 0) return null;
+      if (entry.grossCents - entry.feeCents !== entry.netCents ||
+          (entryMode === 'reverse' ? entry.netCents !== inputCents : entry.grossCents !== inputCents)) return null;
+      return {
+        mode: entryMode, inputCents, grossCents: entry.grossCents, feeCents: entry.feeCents,
+        netCents: entry.netCents, percent: entry.percent, createdAt: entry.createdAt
+      };
+    }
+
+    function loadHistory() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        historyEntries = Array.isArray(stored) ? stored.map(normalizeHistoryEntry).filter(Boolean).slice(0, MAX_HISTORY) : [];
+      } catch (_error) {
+        historyEntries = [];
+        storageAvailable = false;
+      }
+    }
+
+    function persistHistory() {
+      if (!storageAvailable) return;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(historyEntries));
+      } catch (_error) {
+        storageAvailable = false;
+      }
+    }
+
+    function sameCalculation(a, b) {
+      if (!a || !b || a.mode !== b.mode) return false;
+      if (a.mode === 'usdt') {
+        return a.direction === b.direction && a.baseRate === b.baseRate &&
+          a.markupPercent === b.markupPercent && a.inputRubCents === b.inputRubCents &&
+          a.inputUsdtMicros === b.inputUsdtMicros && a.rubCents === b.rubCents &&
+          a.usdtMicros === b.usdtMicros;
+      }
+      return a.inputCents === b.inputCents && a.percent === b.percent &&
+        a.grossCents === b.grossCents && a.netCents === b.netCents;
+    }
+
+    function activeCurrent() { return section === 'usdt' ? currentUsdt : current; }
+
+    function addHistory(data) {
+      if (!data || (data.mode === 'usdt'
+        ? !(data.inputRubCents || data.inputUsdtMicros)
+        : !data.inputCents)) return;
+      if (historyEntries.length && sameCalculation(historyEntries[0], data)) return;
+      historyEntries.unshift({ ...data, createdAt: Date.now() });
+      historyEntries = historyEntries.slice(0, MAX_HISTORY);
+      persistHistory();
+      renderHistory();
+    }
+
+    function scheduleHistorySave() {
+      clearTimeout(historyTimer);
+      const data = activeCurrent();
+      if (!data || (data.mode === 'usdt'
+        ? !(data.inputRubCents || data.inputUsdtMicros)
+        : !data.inputCents)) return;
+      const snapshot = { ...data };
+      historyTimer = setTimeout(() => {
+        const latest = activeCurrent();
+        if (latest && sameCalculation(latest, snapshot)) addHistory(snapshot);
+      }, 1100);
+    }
+
+    function rememberCurrentNow() {
+      clearTimeout(historyTimer);
+      addHistory(activeCurrent());
+    }
+
+    function renderHistory() {
+      historyCount.textContent = String(historyEntries.length);
+      clearHistoryButton.disabled = historyEntries.length === 0;
+      historyStorageInfo.textContent = storageAvailable
+        ? 'История хранится локально в этом браузере. На сервер ничего не отправляется.'
+        : 'Локальное хранилище недоступно: история сохраняется только до закрытия этой страницы.';
+      historyList.replaceChildren();
+      if (!historyEntries.length) {
+        const empty = document.createElement('div');
+        empty.className = 'history-empty';
+        empty.textContent = 'История пока пуста. Введите сумму больше нуля, чтобы сохранить первый расчёт.';
+        historyList.appendChild(empty);
+        return;
+      }
+
+      for (const entry of historyEntries) {
+        const isUsdt = entry.mode === 'usdt';
+        const deduct = entry.mode === 'deduct';
+        const usdtBuy = isUsdt && entry.direction === 'rub-to-usdt';
+        const copyValue = isUsdt
+          ? usdtBuy ? onlyUsdtNumber(entry.usdtMicros) : onlyNumber(entry.rubCents)
+          : onlyNumber(deduct ? entry.netCents : entry.grossCents);
+        const resultText = isUsdt
+          ? usdtBuy ? usdtText(entry.usdtMicros) : money(entry.rubCents)
+          : money(deduct ? entry.netCents : entry.grossCents);
+        const item = document.createElement('article');
+        item.className = 'history-item';
+        const details = document.createElement('div');
+        details.className = 'history-details';
+        const meta = document.createElement('div');
+        meta.className = 'history-meta';
+        meta.textContent = dateFormatter.format(new Date(entry.createdAt)) +
+          (isUsdt ? (usdtBuy ? ' · USDT · Отдают ₽ → USDT' : ' · USDT · USDT → сколько ₽')
+            : deduct ? ' · Вычет процента · Остаток' : ' · Обратный процент · К выставлению');
+        const total = document.createElement('div');
+        total.className = 'history-total';
+        total.textContent = resultText;
+        const extras = document.createElement('div');
+        extras.className = 'history-extras';
+        extras.textContent = isUsdt
+          ? 'Курс: ' + formatRate(entry.baseRate) + ' → ' + formatRate(entry.effectiveRate) +
+            ' ₽/USDT · Наценка: ' + number.format(entry.markupPercent) + '% · ' +
+            money(entry.rubCents) + ' → ' + usdtText(entry.usdtMicros)
+          : (deduct ? 'Исходная сумма: ' : 'На руки: ') + money(entry.inputCents) +
+            ' · Удержание: ' + number.format(entry.percent) + '% (' + money(entry.feeCents) + ')';
+        details.append(meta, total, extras);
+
+        const actions = document.createElement('div');
+        actions.className = 'history-actions';
+        const restoreButton = document.createElement('button');
+        restoreButton.type = 'button';
+        restoreButton.className = 'btn secondary';
+        restoreButton.textContent = 'Повторить';
+        restoreButton.setAttribute('aria-label', 'Повторить расчёт от ' + dateFormatter.format(new Date(entry.createdAt)));
+        restoreButton.addEventListener('click', () => {
+          clearTimeout(historyTimer);
+          if (isUsdt) {
+            section = 'usdt';
+            usdtDirection = entry.direction;
+            usdtRateInput.value = String(entry.baseRate).replace('.', ',');
+            usdtMarkupInput.value = String(entry.markupPercent).replace('.', ',');
+            usdtAmountInput.value = usdtBuy
+              ? onlyNumber(entry.inputRubCents) : onlyUsdtNumber(entry.inputUsdtMicros);
+          } else {
+            section = 'percent';
+            mode = entry.mode;
+            netInput.value = onlyNumber(entry.inputCents);
+            percentInput.value = String(entry.percent).replace('.', ',');
+          }
+          updateSectionUI();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          (isUsdt ? usdtAmountInput : netInput).focus({ preventScroll: true });
+        });
+        const copyHistoryButton = document.createElement('button');
+        copyHistoryButton.type = 'button';
+        copyHistoryButton.className = 'btn secondary';
+        copyHistoryButton.textContent = 'Скопировать сумму';
+        copyHistoryButton.setAttribute('aria-label', 'Скопировать сумму ' + resultText);
+        copyHistoryButton.addEventListener('click', async () => {
+          const ok = await copyText(copyValue);
+          if (ok) {
+            copyHistoryButton.textContent = '✓ Скопировано';
+            setTimeout(() => { copyHistoryButton.textContent = 'Скопировать сумму'; }, 1800);
+          } else {
+            (section === 'usdt' ? usdtToast : toast).textContent =
+              'Не удалось скопировать автоматически. Выделите сумму вручную.';
+          }
+        });
+        actions.append(restoreButton, copyHistoryButton);
+        item.append(details, actions);
+        historyList.appendChild(item);
+      }
+    }
+
+    async function copyText(value) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(value);
+        } else {
+          const el = document.createElement('textarea');
+          el.value = value;
+          el.setAttribute('readonly', '');
+          el.style.position = 'fixed';
+          el.style.opacity = '0';
+          document.body.appendChild(el);
+          try {
+            el.focus();
+            el.select();
+            if (!document.execCommand('copy')) throw new Error('Copy unavailable');
+          } finally {
+            el.remove();
+          }
+        }
+        return true;
+      } catch (_error) {
+        return false;
+      }
+    }
+
+    function onEdit() {
+      calculate();
+      scheduleHistorySave();
+    }
+    function onUsdtEdit() {
+      calculateUsdt();
+      scheduleHistorySave();
+    }
+    sectionButtons.forEach(button => button.addEventListener('click', () => {
+      if (section === button.dataset.section) return;
+      rememberCurrentNow();
+      section = button.dataset.section;
+      updateSectionUI();
+    }));
+    usdtDirections.forEach(button => button.addEventListener('click', () => {
+      if (usdtDirection === button.dataset.usdtDirection) return;
+      rememberCurrentNow();
+      usdtDirection = button.dataset.usdtDirection;
+      // Суммы в RUB и USDT имеют разные единицы: не переносим число при смене направления.
+      usdtAmountInput.value = '0';
+      updateUsdtUI();
+      onUsdtEdit();
+    }));
+    usdtChips.forEach(chip => chip.addEventListener('click', () => {
+      usdtMarkupInput.value = chip.dataset.usdtMarkup;
+      onUsdtEdit();
+    }));
+    usdtRateInput.addEventListener('input', onUsdtEdit);
+    usdtAmountInput.addEventListener('input', onUsdtEdit);
+    usdtMarkupInput.addEventListener('input', onUsdtEdit);
+    document.getElementById('usdtResetButton').addEventListener('click', () => {
+      rememberCurrentNow();
+      usdtDirection = 'rub-to-usdt';
+      usdtRateInput.value = '0';
+      usdtAmountInput.value = '0';
+      usdtMarkupInput.value = '0';
+      updateUsdtUI();
+      calculateUsdt();
+    });
+    usdtCopyResultButton.addEventListener('click', async () => {
+      if (!currentUsdt) return;
+      const result = currentUsdt.direction === 'rub-to-usdt'
+        ? onlyUsdtNumber(currentUsdt.usdtMicros) : onlyNumber(currentUsdt.rubCents);
+      rememberCurrentNow();
+      const ok = await copyText(result);
+      usdtToast.textContent = ok ? 'Скопировано только число: ' + result : 'Не удалось скопировать сумму автоматически.';
+      usdtToast.classList.toggle('is-error', !ok);
+    });
+    usdtCopyButton.addEventListener('click', async () => {
+      if (!currentUsdt) return;
+      const t = [
+        'Калькулятор: обмен USDT',
+        'Базовый курс: ' + formatRate(currentUsdt.baseRate) + ' ₽/USDT',
+        'Моя наценка: ' + number.format(currentUsdt.markupPercent) + '%',
+        'Курс для клиента: ' + formatRate(currentUsdt.effectiveRate) + ' ₽/USDT',
+        'Клиент отдаёт: ' + money(currentUsdt.rubCents),
+        'Клиент получает: ' + usdtText(currentUsdt.usdtMicros),
+        'Разница относительно базового курса: ' + money(currentUsdt.markupRubCents)
+      ].join('\n');
+      rememberCurrentNow();
+      const ok = await copyText(t);
+      usdtToast.textContent = ok ? 'Полный расчёт скопирован в буфер обмена.' : 'Не удалось скопировать расчёт автоматически.';
+      usdtToast.classList.toggle('is-error', !ok);
+    });
+    modeButtons.forEach(button => button.addEventListener('click', () => {
+      if (mode === button.dataset.mode) return;
+      rememberCurrentNow();
+      mode = button.dataset.mode;
+      updateModeUI();
+      onEdit();
+    }));
+    chips.forEach(chip => chip.addEventListener('click', () => {
+      percentInput.value = chip.dataset.percent;
+      onEdit();
+    }));
+    netInput.addEventListener('input', onEdit);
+    percentInput.addEventListener('input', onEdit);
+    document.getElementById('resetButton').addEventListener('click', () => {
+      rememberCurrentNow();
+      mode = 'reverse';
+      netInput.value = '0';
+      percentInput.value = '8';
+      updateModeUI();
+      calculate();
+    });
+    copyResultButton.addEventListener('click', async () => {
+      if (!current) return;
+      const result = onlyNumber(current.mode === 'reverse' ? current.grossCents : current.netCents);
+      rememberCurrentNow();
+      const ok = await copyText(result);
+      showToast(ok ? 'Скопировано только число: ' + result : 'Не удалось скопировать сумму автоматически.', !ok);
+    });
+    copyButton.addEventListener('click', async () => {
+      if (!current) return;
+      const deduct = current.mode === 'deduct';
+      const t = [
+        deduct ? 'Калькулятор: вычет процента' : 'Калькулятор: обратный процент',
+        (deduct ? 'Исходная сумма: ' : 'Сумма на руки: ') + money(current.inputCents),
+        'Удержание: ' + number.format(current.percent) + '%',
+        'Сумма до удержания: ' + money(current.grossCents),
+        'Размер удержания: ' + money(current.feeCents),
+        'Останется на руках: ' + money(current.netCents)
+      ].join('\n');
+      rememberCurrentNow();
+      const ok = await copyText(t);
+      showToast(ok ? 'Полный расчёт скопирован в буфер обмена.' : 'Не удалось скопировать расчёт автоматически.', !ok);
+    });
+    clearHistoryButton.addEventListener('click', () => {
+      if (!historyEntries.length || !window.confirm('Удалить все сохранённые расчёты?')) return;
+      clearTimeout(historyTimer);
+      historyEntries = [];
+      persistHistory();
+      renderHistory();
+    });
+
+    loadHistory();
+    renderHistory();
+    updateSectionUI();
+  </script>
+</body>
+</html>
