@@ -133,7 +133,7 @@
   <main class="wrap">
     <div class="eyebrow">Финансовый инструмент</div>
     <h1>Калькулятор процентов и USDT</h1>
-    <p class="lead">Рассчитайте удержание процентов или обмен USDT по заданному курсу с вашей наценкой. Все расчёты выполняются локально в браузере.</p>
+    <p class="lead">Рассчитайте удержание процентов или сумму к получению за перевод USDT с учётом наценки и комиссии. Все расчёты выполняются локально в браузере.</p>
 
     <nav class="section-switch" aria-label="Раздел калькулятора">
       <button class="section-button" data-section="percent" type="button" aria-pressed="true">Проценты</button>
@@ -190,23 +190,24 @@
     <div class="layout" id="usdtLayout" hidden>
       <section class="card" aria-labelledby="usdt-inputs-title">
         <h2 class="card-title" id="usdt-inputs-title">Расчёт обмена USDT</h2>
-        <div class="mode-switch" role="group" aria-label="Направление расчёта USDT">
-          <button class="mode-button" data-usdt-direction="rub-to-usdt" type="button" aria-pressed="true">Отдают ₽ → получают USDT</button>
-          <button class="mode-button" data-usdt-direction="usdt-to-rub" type="button" aria-pressed="false">Нужно USDT → сколько ₽</button>
-        </div>
         <label class="field rate-field" for="usdtRateInput">
-          <span>Базовый курс за 1 USDT</span>
+          <span>Базовый курс, ₽ / USDT</span>
           <span class="input-wrap"><input id="usdtRateInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="usdtRateHint"><span class="unit small" aria-hidden="true">₽ / USDT</span></span>
           <small id="usdtRateHint">Введите курс вручную. Например: 92,50. Автоматической загрузки котировок нет.</small>
         </label>
-        <label class="field" for="usdtAmountInput">
-          <span id="usdtAmountLabel">Сколько рублей отдаёт клиент</span>
-          <span class="input-wrap"><input id="usdtAmountInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="usdtAmountHint"><span class="unit" id="usdtAmountUnit" aria-hidden="true">₽</span></span>
-          <small id="usdtAmountHint">Например: 100 000 или 100 тыс</small>
-        </label>
         <label class="field" for="usdtMarkupInput">
-          <span>Моя наценка к курсу</span>
+          <span>Моя наценка на весь объём USDT</span>
           <span class="input-wrap"><input id="usdtMarkupInput" type="text" inputmode="decimal" value="0" autocomplete="off"><span class="unit" aria-hidden="true">%</span></span>
+        </label>
+        <label class="field" for="usdtAmountInput">
+          <span>Себестоимость основного перевода, ₽</span>
+          <span class="input-wrap"><input id="usdtAmountInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="usdtAmountHint"><span class="unit" aria-hidden="true">₽</span></span>
+          <small id="usdtAmountHint">Сколько рублей вы тратите на основную сумму перевода, без сетевой комиссии.</small>
+        </label>
+        <label class="field" for="usdtFeeInput">
+          <span>Комиссия за перевод, USDT</span>
+          <span class="input-wrap"><input id="usdtFeeInput" type="text" inputmode="decimal" value="0" autocomplete="off" aria-describedby="usdtFeeHint"><span class="unit small" aria-hidden="true">USDT</span></span>
+          <small id="usdtFeeHint">Дополнительный расход USDT за сеть или обработку перевода.</small>
         </label>
         <div class="presets" aria-label="Быстрый выбор наценки">
           <button type="button" class="chip" data-usdt-markup="0">0%</button>
@@ -216,28 +217,30 @@
           <button type="button" class="chip" data-usdt-markup="5">5%</button>
           <button type="button" class="chip" data-usdt-markup="8">8%</button>
         </div>
-        <p class="hint">Наценка <strong style="color:#d7e3f9">прибавляется именно к курсу</strong>. Например, курс 100 ₽ + 5% = 105 ₽ за 1 USDT. Сетевые комиссии в расчёт не включены.</p>
+        <p class="hint">Курс для клиента равен базовому курсу с наценкой. Наценка применяется <strong style="color:#d7e3f9">ко всему объёму USDT, включая комиссию</strong>. Себестоимость включает основной перевод в рублях и комиссию USDT по базовому курсу.</p>
       </section>
 
       <section class="card result" aria-labelledby="usdt-result-title">
-        <div class="topline" id="usdt-result-title">Клиент получит</div>
+        <div class="topline" id="usdt-result-title">Клиент отдаёт</div>
         <div class="total" id="usdtResultAmount" aria-live="polite">—</div>
-        <div class="sub" id="usdtResultSub">USDT после применения вашей наценки к курсу</div>
+        <div class="sub" id="usdtResultSub">Итоговая сумма к получению от клиента</div>
         <div class="divider"></div>
         <div class="line"><span>Базовый курс</span><strong id="usdtBaseRate">—</strong></div>
-        <div class="line"><span>Наценка к курсу</span><strong id="usdtMarkupRate">—</strong></div>
+        <div class="line"><span>Наценка</span><strong id="usdtMarkupRate">—</strong></div>
         <div class="line featured"><span>Курс для клиента</span><strong id="usdtFinalRate">—</strong></div>
         <div class="divider"></div>
-        <div class="line"><span>Клиент отдаёт</span><strong id="usdtRubAmount">—</strong></div>
-        <div class="line"><span>Клиент получает</span><strong class="green" id="usdtUsdtAmount">—</strong></div>
-        <div class="line"><span>Разница относительно базового курса</span><strong id="usdtMarkupRub">—</strong></div>
+        <div class="line"><span>USDT основного перевода</span><strong id="usdtPrincipal">—</strong></div>
+        <div class="line"><span>Комиссия за перевод</span><strong id="usdtFee">—</strong></div>
+        <div class="line"><span>Общий объём USDT</span><strong id="usdtTotalVolume">—</strong></div>
+        <div class="line"><span>Фактическая себестоимость</span><strong id="usdtBaseCost">—</strong></div>
+        <div class="line"><span>Заработок оператора</span><strong class="green" id="usdtProfit">—</strong></div>
         <div class="formula" id="usdtFormula">Укажите базовый курс больше нуля, чтобы рассчитать обмен.</div>
         <div class="actions">
           <button class="btn primary" id="usdtCopyResultButton" type="button" disabled>Скопировать только сумму</button>
           <button class="btn secondary" id="usdtCopyButton" type="button" disabled>Скопировать расчёт</button>
           <button class="btn secondary" id="usdtResetButton" type="button">Сбросить</button>
         </div>
-        <p class="copy-note" id="usdtCopyNote">Скопирует только число USDT без обозначения валюты.</p>
+        <p class="copy-note" id="usdtCopyNote">Скопирует только сумму, которую должен передать клиент.</p>
         <div class="toast" id="usdtToast" role="status" aria-live="polite"></div>
       </section>
     </div>
@@ -260,7 +263,7 @@
       <h2 id="explain-title">Почему нельзя просто прибавить процент?</h2>
       <p id="comparison">При нулевой сумме итог также равен нулю. Введите сумму, чтобы увидеть сравнение.</p>
     </section>
-    <footer>Работает локально и без интернета. Суммы в рублях округляются до копеек, USDT — до 6 знаков после запятой. Реальные котировки и комиссии сети не загружаются.</footer>
+    <footer>Работает локально и без интернета. Рубли округляются до копеек вверх в сумме клиента; себестоимость и заработок показываются до копейки. USDT отображается до 6 знаков после запятой.</footer>
   </main>
 
   <script>
@@ -286,11 +289,11 @@
     const sectionButtons = [...document.querySelectorAll('[data-section]')];
     const percentLayout = document.getElementById('percentLayout');
     const usdtLayout = document.getElementById('usdtLayout');
-    const usdtDirections = [...document.querySelectorAll('[data-usdt-direction]')];
     const usdtChips = [...document.querySelectorAll('[data-usdt-markup]')];
     const usdtRateInput = document.getElementById('usdtRateInput');
     const usdtAmountInput = document.getElementById('usdtAmountInput');
     const usdtMarkupInput = document.getElementById('usdtMarkupInput');
+    const usdtFeeInput = document.getElementById('usdtFeeInput');
     const usdtResultAmount = document.getElementById('usdtResultAmount');
     const usdtCopyResultButton = document.getElementById('usdtCopyResultButton');
     const usdtCopyButton = document.getElementById('usdtCopyButton');
@@ -313,7 +316,6 @@
     const MAX_HISTORY = 50;
     let section = 'percent';
     let mode = 'reverse';
-    let usdtDirection = 'rub-to-usdt';
     let currentUsdt = null;
     let current = null;
     let historyEntries = [];
@@ -453,42 +455,30 @@
       copyResultButton.disabled = false;
     }
 
+    function updateUsdtUI() {
+      document.getElementById('usdt-result-title').textContent = 'Клиент отдаёт';
+      document.getElementById('usdtResultSub').textContent = 'Сумма округлена вверх до копейки';
+      document.getElementById('usdtCopyNote').textContent = 'Скопирует только сумму, которую должен передать клиент.';
+    }
+
     function readUsdt(value) {
       const text = value.trim().toLowerCase().replace(/[\u00a0\u202f\s]/g, '').replace(/usdt/g, '').replace(',', '.');
       if (!/^\d+(?:\.\d{1,6})?$/.test(text)) return NaN;
       return Number(text);
     }
 
-    function updateUsdtUI() {
-      const buy = usdtDirection === 'rub-to-usdt';
-      usdtDirections.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.usdtDirection === usdtDirection)));
-      document.getElementById('usdtAmountLabel').textContent = buy ? 'Сколько рублей отдаёт клиент' : 'Сколько USDT должен получить клиент';
-      document.getElementById('usdtAmountUnit').textContent = buy ? '₽' : 'USDT';
-      document.getElementById('usdtAmountUnit').classList.toggle('small', !buy);
-      document.getElementById('usdtAmountHint').textContent = buy
-        ? 'Например: 100 000 или 100 тыс'
-        : 'Например: 100,5 USDT. Точность — до 6 знаков после запятой.';
-      document.getElementById('usdt-result-title').textContent = buy ? 'Клиент получит' : 'Клиент должен отдать';
-      document.getElementById('usdtResultSub').textContent = buy
-        ? 'USDT после применения вашей наценки к курсу'
-        : 'Рубли по курсу с вашей наценкой';
-      document.getElementById('usdtCopyNote').textContent = buy
-        ? 'Скопирует только число USDT без обозначения валюты.'
-        : 'Скопирует только число рублей без обозначения валюты.';
-    }
-
     function setUsdtEmpty(message = 'Введите корректные данные для расчёта USDT.') {
       currentUsdt = null;
       for (const id of ['usdtResultAmount', 'usdtBaseRate', 'usdtMarkupRate', 'usdtFinalRate',
-        'usdtRubAmount', 'usdtUsdtAmount', 'usdtMarkupRub']) {
+        'usdtPrincipal', 'usdtFee', 'usdtTotalVolume', 'usdtBaseCost', 'usdtProfit']) {
         document.getElementById(id).textContent = '—';
       }
       document.getElementById('usdtFormula').textContent = message;
       usdtCopyButton.disabled = true;
       usdtCopyResultButton.disabled = true;
       if (section === 'usdt') {
-        document.getElementById('explain-title').textContent = 'Как рассчитывается обмен USDT?';
-        comparison.textContent = 'Введите базовый курс выше нуля и сумму обмена. Прибавка в процентах увеличивает курс для клиента.';
+        document.getElementById('explain-title').textContent = 'Как считается перевод USDT?';
+        comparison.textContent = 'Введите базовый курс, наценку, себестоимость основного перевода в рублях и комиссию в USDT.';
       }
     }
 
@@ -496,67 +486,58 @@
       usdtToast.textContent = '';
       const baseRate = readNumber(usdtRateInput.value, false);
       const markupPercent = readNumber(usdtMarkupInput.value, false);
-      const buy = usdtDirection === 'rub-to-usdt';
-      const inputAmount = buy ? readNumber(usdtAmountInput.value, true) : readUsdt(usdtAmountInput.value);
+      const transferRubles = readNumber(usdtAmountInput.value, true);
+      const feeUsdt = readUsdt(usdtFeeInput.value);
       const rateValid = Number.isFinite(baseRate) && baseRate >= 0.000001 && baseRate <= 1000000;
       const markupValid = Number.isFinite(markupPercent) && markupPercent >= 0 && markupPercent <= 1000;
-      const amountValid = Number.isFinite(inputAmount) && inputAmount >= 0 &&
-        inputAmount <= (buy ? 1e12 : 1e8);
-      for (const [element, valid] of [[usdtRateInput, rateValid], [usdtMarkupInput, markupValid], [usdtAmountInput, amountValid]]) {
+      const amountValid = Number.isFinite(transferRubles) && transferRubles >= 0 && transferRubles <= 1e12;
+      const feeValid = Number.isFinite(feeUsdt) && feeUsdt >= 0 && feeUsdt <= 1e8;
+      for (const [element, valid] of [[usdtRateInput, rateValid], [usdtMarkupInput, markupValid], [usdtAmountInput, amountValid], [usdtFeeInput, feeValid]]) {
         element.classList.toggle('invalid', !valid && (element !== usdtRateInput || element.value.trim() !== '0'));
         element.setAttribute('aria-invalid', String(!valid && (element !== usdtRateInput || element.value.trim() !== '0')));
       }
       usdtChips.forEach(chip => chip.classList.toggle('active', markupValid && Number(chip.dataset.usdtMarkup) === markupPercent));
-      if (!rateValid || !markupValid || !amountValid) {
+      if (!rateValid || !markupValid || !amountValid || !feeValid) {
         setUsdtEmpty(!rateValid ? 'Введите базовый курс больше нуля (₽ за 1 USDT).'
           : !markupValid ? 'Наценка должна быть от 0% до 1000%.'
-          : buy ? 'Укажите корректную сумму в рублях от 0 до 1 трлн ₽.'
-          : 'Укажите корректное количество USDT (до 6 знаков после запятой).');
+          : !amountValid ? 'Укажите корректную себестоимость основного перевода от 0 до 1 трлн ₽.'
+          : 'Укажите корректную комиссию в USDT от 0 до 100 млн.');
         return;
       }
 
+      const feeMicros = Math.round(feeUsdt * 1e6);
+      const principalCents = Math.round(transferRubles * 100);
+      const principalMicros = Math.round((principalCents / 100 / baseRate) * 1e6 + 1e-8);
+      const totalMicros = principalMicros + feeMicros;
       const effectiveRate = baseRate * (1 + markupPercent / 100);
-      let rubCents, usdtMicros;
-      if (buy) {
-        rubCents = Math.round(inputAmount * 100);
-        // Для обмена за фиксированное количество рублей округляем USDT вниз:
-        // клиент не должен получить больше, чем оплачено по итоговому курсу.
-        usdtMicros = Math.floor((rubCents / 100 / effectiveRate) * 1e6 + 1e-7);
-      } else {
-        usdtMicros = Math.round(inputAmount * 1e6);
-        // Для фиксированного количества USDT округляем рублёвую оплату вверх.
-        rubCents = Math.ceil((usdtMicros / 1e6 * effectiveRate) * 100 - 1e-9);
-      }
-      if (!Number.isSafeInteger(rubCents) || !Number.isSafeInteger(usdtMicros) ||
-          rubCents < 0 || rubCents > 1e14 || usdtMicros < 0 || usdtMicros > 1e14) {
+      const exactClientCents = totalMicros / 1e6 * effectiveRate * 100;
+      const clientCents = Math.ceil(exactClientCents - 1e-9);
+      const baseCostCents = principalCents + Math.round(feeMicros / 1e6 * baseRate * 100);
+      const profitCents = clientCents - baseCostCents;
+      if (![feeMicros, principalCents, principalMicros, totalMicros, clientCents, baseCostCents, profitCents].every(Number.isSafeInteger) ||
+          principalMicros < 0 || totalMicros < 0 || clientCents < 0 || clientCents > 1e14 || baseCostCents > 1e14) {
         setUsdtEmpty('Слишком большая сумма при таком курсе. Уменьшите сумму или измените курс.');
         return;
       }
-      const baseCostCents = Math.round(usdtMicros / 1e6 * baseRate * 100);
-      const markupRubCents = Math.max(0, rubCents - baseCostCents);
-      const inputRubCents = buy ? rubCents : 0;
-      const inputUsdtMicros = buy ? 0 : usdtMicros;
-
-      usdtResultAmount.textContent = buy ? usdtText(usdtMicros) : money(rubCents);
+      usdtResultAmount.textContent = money(clientCents);
       document.getElementById('usdtBaseRate').textContent = formatRate(baseRate) + ' ₽/USDT';
-      document.getElementById('usdtMarkupRate').textContent = '+' + formatRate(effectiveRate - baseRate) + ' ₽ (' + number.format(markupPercent) + '%)';
+      document.getElementById('usdtMarkupRate').textContent = number.format(markupPercent) + '%';
       document.getElementById('usdtFinalRate').textContent = formatRate(effectiveRate) + ' ₽/USDT';
-      document.getElementById('usdtRubAmount').textContent = money(rubCents);
-      document.getElementById('usdtUsdtAmount').textContent = usdtText(usdtMicros);
-      document.getElementById('usdtMarkupRub').textContent = money(markupRubCents);
-      document.getElementById('usdtFormula').textContent = buy
-        ? money(rubCents) + ' ÷ ' + formatRate(effectiveRate) + ' ₽/USDT ≈ ' + usdtText(usdtMicros) + ' (округление USDT вниз до 6 знаков)'
-        : usdtText(usdtMicros) + ' × ' + formatRate(effectiveRate) + ' ₽/USDT ≈ ' + money(rubCents) + ' (округление рублей вверх до копейки)';
+      document.getElementById('usdtPrincipal').textContent = usdtText(principalMicros);
+      document.getElementById('usdtFee').textContent = usdtText(feeMicros);
+      document.getElementById('usdtTotalVolume').textContent = usdtText(totalMicros);
+      document.getElementById('usdtBaseCost').textContent = money(baseCostCents);
+      document.getElementById('usdtProfit').textContent = money(profitCents);
+      document.getElementById('usdtFormula').textContent = usdtText(principalMicros) + ' + ' + usdtText(feeMicros) + ' = ' + usdtText(totalMicros) +
+        '; ' + usdtText(totalMicros) + ' × ' + formatRate(effectiveRate) + ' ₽/USDT = ' + money(clientCents) + ' (округление вверх до копейки)';
       if (section === 'usdt') {
-        document.getElementById('explain-title').textContent = 'Как рассчитывается обмен USDT?';
-        comparison.textContent = 'К базовому курсу ' + formatRate(baseRate) + ' ₽ добавлена наценка ' +
-          number.format(markupPercent) + '%. Курс для клиента: ' + formatRate(effectiveRate) +
-          ' ₽/USDT. Клиент отдаёт ' + money(rubCents) + ' и получает ' + usdtText(usdtMicros) +
-          '. Разница относительно базового курса: ' + money(markupRubCents) +
-          ' (это не чистая прибыль; другие комиссии и расходы не учтены).';
+        document.getElementById('explain-title').textContent = 'Как считается перевод USDT?';
+        comparison.textContent = 'Основной перевод: ' + money(principalCents) + ' ÷ ' + formatRate(baseRate) + ' ₽/USDT = ' + usdtText(principalMicros) +
+          '. С комиссией общий объём — ' + usdtText(totalMicros) + '. Клиент передаёт ' + money(clientCents) +
+          ', фактическая себестоимость — ' + money(baseCostCents) + ', заработок оператора — ' + money(profitCents) + '.';
       }
-      currentUsdt = { mode: 'usdt', direction: usdtDirection, baseRate, markupPercent,
-        effectiveRate, inputRubCents, inputUsdtMicros, rubCents, usdtMicros, markupRubCents };
+      currentUsdt = { mode: 'usdt', direction: 'cost-plus-fee', baseRate, markupPercent, transferRublesCents: principalCents,
+        feeMicros, principalMicros, totalMicros, clientCents, baseCostCents, profitCents, effectiveRate };
       usdtCopyButton.disabled = false;
       usdtCopyResultButton.disabled = false;
     }
@@ -578,6 +559,17 @@
     function normalizeHistoryEntry(entry) {
       if (!entry || typeof entry !== 'object') return null;
       if (entry.mode === 'usdt') {
+        if (entry.direction === 'cost-plus-fee') {
+          const fields = [entry.transferRublesCents, entry.feeMicros, entry.principalMicros, entry.totalMicros,
+            entry.clientCents, entry.baseCostCents, entry.profitCents];
+          if (!fields.every(value => Number.isSafeInteger(value) && value >= 0) ||
+              !Number.isFinite(entry.baseRate) || entry.baseRate <= 0 || entry.baseRate > 1000000 ||
+              !Number.isFinite(entry.markupPercent) || entry.markupPercent < 0 || entry.markupPercent > 1000 ||
+              !Number.isFinite(entry.createdAt) || entry.createdAt <= 0 ||
+              entry.totalMicros !== entry.principalMicros + entry.feeMicros ||
+              entry.profitCents !== entry.clientCents - entry.baseCostCents) return null;
+          return { ...entry, effectiveRate: entry.baseRate * (1 + entry.markupPercent / 100) };
+        }
         if (entry.direction !== 'rub-to-usdt' && entry.direction !== 'usdt-to-rub') return null;
         for (const value of [entry.inputRubCents, entry.inputUsdtMicros, entry.rubCents, entry.usdtMicros]) {
           if (!Number.isSafeInteger(value) || value < 0) return null;
@@ -589,7 +581,7 @@
         if (entry.direction === 'usdt-to-rub' && entry.usdtMicros !== entry.inputUsdtMicros) return null;
         const effectiveRate = entry.baseRate * (1 + entry.markupPercent / 100);
         const baseCostCents = Math.round(entry.usdtMicros / 1e6 * entry.baseRate * 100);
-        return { mode: 'usdt', direction: entry.direction, baseRate: entry.baseRate,
+        return { mode: 'usdt', legacy: true, direction: entry.direction, baseRate: entry.baseRate,
           markupPercent: entry.markupPercent, effectiveRate,
           inputRubCents: entry.inputRubCents, inputUsdtMicros: entry.inputUsdtMicros,
           rubCents: entry.rubCents, usdtMicros: entry.usdtMicros,
@@ -633,6 +625,10 @@
     function sameCalculation(a, b) {
       if (!a || !b || a.mode !== b.mode) return false;
       if (a.mode === 'usdt') {
+        if (a.direction === 'cost-plus-fee' || b.direction === 'cost-plus-fee') {
+          return a.direction === b.direction && a.baseRate === b.baseRate && a.markupPercent === b.markupPercent &&
+            a.transferRublesCents === b.transferRublesCents && a.feeMicros === b.feeMicros;
+        }
         return a.direction === b.direction && a.baseRate === b.baseRate &&
           a.markupPercent === b.markupPercent && a.inputRubCents === b.inputRubCents &&
           a.inputUsdtMicros === b.inputUsdtMicros && a.rubCents === b.rubCents &&
@@ -644,10 +640,14 @@
 
     function activeCurrent() { return section === 'usdt' ? currentUsdt : current; }
 
+    function hasHistoryAmount(data) {
+      return data && (data.mode === 'usdt'
+        ? data.direction === 'cost-plus-fee' ? data.transferRublesCents || data.feeMicros : data.inputRubCents || data.inputUsdtMicros
+        : data.inputCents);
+    }
+
     function addHistory(data) {
-      if (!data || (data.mode === 'usdt'
-        ? !(data.inputRubCents || data.inputUsdtMicros)
-        : !data.inputCents)) return;
+      if (!hasHistoryAmount(data)) return;
       if (historyEntries.length && sameCalculation(historyEntries[0], data)) return;
       historyEntries.unshift({ ...data, createdAt: Date.now() });
       historyEntries = historyEntries.slice(0, MAX_HISTORY);
@@ -658,9 +658,7 @@
     function scheduleHistorySave() {
       clearTimeout(historyTimer);
       const data = activeCurrent();
-      if (!data || (data.mode === 'usdt'
-        ? !(data.inputRubCents || data.inputUsdtMicros)
-        : !data.inputCents)) return;
+      if (!hasHistoryAmount(data)) return;
       const snapshot = { ...data };
       historyTimer = setTimeout(() => {
         const latest = activeCurrent();
@@ -691,12 +689,13 @@
       for (const entry of historyEntries) {
         const isUsdt = entry.mode === 'usdt';
         const deduct = entry.mode === 'deduct';
+        const newUsdt = isUsdt && entry.direction === 'cost-plus-fee';
         const usdtBuy = isUsdt && entry.direction === 'rub-to-usdt';
         const copyValue = isUsdt
-          ? usdtBuy ? onlyUsdtNumber(entry.usdtMicros) : onlyNumber(entry.rubCents)
+          ? newUsdt ? onlyNumber(entry.clientCents) : usdtBuy ? onlyUsdtNumber(entry.usdtMicros) : onlyNumber(entry.rubCents)
           : onlyNumber(deduct ? entry.netCents : entry.grossCents);
         const resultText = isUsdt
-          ? usdtBuy ? usdtText(entry.usdtMicros) : money(entry.rubCents)
+          ? newUsdt ? money(entry.clientCents) : usdtBuy ? usdtText(entry.usdtMicros) : money(entry.rubCents)
           : money(deduct ? entry.netCents : entry.grossCents);
         const item = document.createElement('article');
         item.className = 'history-item';
@@ -705,7 +704,7 @@
         const meta = document.createElement('div');
         meta.className = 'history-meta';
         meta.textContent = dateFormatter.format(new Date(entry.createdAt)) +
-          (isUsdt ? (usdtBuy ? ' · USDT · Отдают ₽ → USDT' : ' · USDT · USDT → сколько ₽')
+          (isUsdt ? (newUsdt ? ' · USDT · Основной перевод + комиссия' : usdtBuy ? ' · USDT · Отдают ₽ → USDT · старая запись' : ' · USDT · USDT → ₽ · старая запись')
             : deduct ? ' · Вычет процента · Остаток' : ' · Обратный процент · К выставлению');
         const total = document.createElement('div');
         total.className = 'history-total';
@@ -713,7 +712,11 @@
         const extras = document.createElement('div');
         extras.className = 'history-extras';
         extras.textContent = isUsdt
-          ? 'Курс: ' + formatRate(entry.baseRate) + ' → ' + formatRate(entry.effectiveRate) +
+          ? newUsdt ? 'Курс: ' + formatRate(entry.baseRate) + ' → ' + formatRate(entry.effectiveRate) +
+            ' ₽/USDT · Наценка: ' + number.format(entry.markupPercent) + '% · Основной перевод: ' + money(entry.transferRublesCents) +
+            ' · Комиссия: ' + usdtText(entry.feeMicros) + ' · Себестоимость: ' + money(entry.baseCostCents) +
+            ' · Заработок: ' + money(entry.profitCents)
+          : 'Курс: ' + formatRate(entry.baseRate) + ' → ' + formatRate(entry.effectiveRate) +
             ' ₽/USDT · Наценка: ' + number.format(entry.markupPercent) + '% · ' +
             money(entry.rubCents) + ' → ' + usdtText(entry.usdtMicros)
           : (deduct ? 'Исходная сумма: ' : 'На руки: ') + money(entry.inputCents) +
@@ -725,17 +728,17 @@
         const restoreButton = document.createElement('button');
         restoreButton.type = 'button';
         restoreButton.className = 'btn secondary';
-        restoreButton.textContent = 'Повторить';
+        restoreButton.textContent = isUsdt && entry.legacy ? 'Старая запись' : 'Повторить';
+        restoreButton.disabled = Boolean(isUsdt && entry.legacy);
         restoreButton.setAttribute('aria-label', 'Повторить расчёт от ' + dateFormatter.format(new Date(entry.createdAt)));
         restoreButton.addEventListener('click', () => {
           clearTimeout(historyTimer);
           if (isUsdt) {
             section = 'usdt';
-            usdtDirection = entry.direction;
             usdtRateInput.value = String(entry.baseRate).replace('.', ',');
             usdtMarkupInput.value = String(entry.markupPercent).replace('.', ',');
-            usdtAmountInput.value = usdtBuy
-              ? onlyNumber(entry.inputRubCents) : onlyUsdtNumber(entry.inputUsdtMicros);
+            usdtAmountInput.value = onlyNumber(entry.transferRublesCents);
+            usdtFeeInput.value = onlyUsdtNumber(entry.feeMicros);
           } else {
             section = 'percent';
             mode = entry.mode;
@@ -806,15 +809,6 @@
       section = button.dataset.section;
       updateSectionUI();
     }));
-    usdtDirections.forEach(button => button.addEventListener('click', () => {
-      if (usdtDirection === button.dataset.usdtDirection) return;
-      rememberCurrentNow();
-      usdtDirection = button.dataset.usdtDirection;
-      // Суммы в RUB и USDT имеют разные единицы: не переносим число при смене направления.
-      usdtAmountInput.value = '0';
-      updateUsdtUI();
-      onUsdtEdit();
-    }));
     usdtChips.forEach(chip => chip.addEventListener('click', () => {
       usdtMarkupInput.value = chip.dataset.usdtMarkup;
       onUsdtEdit();
@@ -822,19 +816,19 @@
     usdtRateInput.addEventListener('input', onUsdtEdit);
     usdtAmountInput.addEventListener('input', onUsdtEdit);
     usdtMarkupInput.addEventListener('input', onUsdtEdit);
+    usdtFeeInput.addEventListener('input', onUsdtEdit);
     document.getElementById('usdtResetButton').addEventListener('click', () => {
       rememberCurrentNow();
-      usdtDirection = 'rub-to-usdt';
       usdtRateInput.value = '0';
       usdtAmountInput.value = '0';
       usdtMarkupInput.value = '0';
+      usdtFeeInput.value = '0';
       updateUsdtUI();
       calculateUsdt();
     });
     usdtCopyResultButton.addEventListener('click', async () => {
       if (!currentUsdt) return;
-      const result = currentUsdt.direction === 'rub-to-usdt'
-        ? onlyUsdtNumber(currentUsdt.usdtMicros) : onlyNumber(currentUsdt.rubCents);
+      const result = onlyNumber(currentUsdt.clientCents);
       rememberCurrentNow();
       const ok = await copyText(result);
       usdtToast.textContent = ok ? 'Скопировано только число: ' + result : 'Не удалось скопировать сумму автоматически.';
@@ -847,9 +841,13 @@
         'Базовый курс: ' + formatRate(currentUsdt.baseRate) + ' ₽/USDT',
         'Моя наценка: ' + number.format(currentUsdt.markupPercent) + '%',
         'Курс для клиента: ' + formatRate(currentUsdt.effectiveRate) + ' ₽/USDT',
-        'Клиент отдаёт: ' + money(currentUsdt.rubCents),
-        'Клиент получает: ' + usdtText(currentUsdt.usdtMicros),
-        'Разница относительно базового курса: ' + money(currentUsdt.markupRubCents)
+        'USDT основного перевода: ' + usdtText(currentUsdt.principalMicros),
+        'Комиссия за перевод: ' + usdtText(currentUsdt.feeMicros),
+        'Общий объём USDT: ' + usdtText(currentUsdt.totalMicros),
+        'Себестоимость основного перевода: ' + money(currentUsdt.transferRublesCents),
+        'Фактическая себестоимость: ' + money(currentUsdt.baseCostCents),
+        'Клиент отдаёт: ' + money(currentUsdt.clientCents),
+        'Заработок оператора: ' + money(currentUsdt.profitCents)
       ].join('\n');
       rememberCurrentNow();
       const ok = await copyText(t);
